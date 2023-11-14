@@ -7,6 +7,49 @@ document.addEventListener('click', function(e) {
     // Add more properties as needed
 });
 
+function getXPath(element) {
+  if (element.id !== '') {
+    return `id("${element.id}")`;
+  }
+
+  if (element === document.body) {
+    return element.tagName.toLowerCase();
+  }
+
+  const siblings = element.parentNode.childNodes;
+  let index = 1;
+
+  for (let i = 0; i < siblings.length; i++) {
+    const sibling = siblings[i];
+    if (sibling === element) {
+      return `${getXPath(element.parentNode)}/${element.tagName.toLowerCase()}[${index}]`;
+    }
+    if (sibling.nodeType === 1 && sibling.tagName === element.tagName) {
+      index++;
+    }
+  }
+}
+
+// Function to log information about the hovered element, including XPath
+function logElementInfo(event) {
+  const hoveredElement = event.target;
+  const elementInfo = {
+    TagName: hoveredElement.tagName,
+    ID: hoveredElement.id,
+    ClassList: Array.from(hoveredElement.classList).join(', '),
+    Attributes: Array.from(hoveredElement.attributes).map(attr => ({ name: attr.name, value: attr.value })),
+    XPath: getXPath(hoveredElement),
+  };
+
+  console.log('Hovered Element Information:', elementInfo);
+}
+
+// Add a mouseover event listener to the document
+document.addEventListener('mouseover', logElementInfo);
+
+console.log('Hover over any element on the page to see information and XPath about it.');
+
+
 
 Executing maven run:
 
