@@ -1,0 +1,17 @@
+How to select any element and its attributes:
+
+document.addEventListener('click', function(e) {
+    console.log('Clicked element:', e.target);
+    console.log('Element type:', e.target.tagName);
+    console.log('Element ID:', e.target.id);
+    // Add more properties as needed
+});
+
+
+Executing maven run:
+
+Navigate to the same file that has the pom.xml
+
+Run the following command:
+
+mvn exec:java -Dexec.mainClass="com.seleniumtest.SeleniumExample"        (where SeleniumExample is the class name)
