@@ -1,18 +1,12 @@
 package com.seleniumtest;
 import java.time.Duration;
-import java.util.NoSuchElementException;
-
-import javax.print.attribute.standard.MediaSize.NA;
-import javax.swing.MenuElement;
-
 import org.openqa.selenium.By;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.By.ByTagName;
 import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.devtools.v113.indexeddb.model.Key;
 import org.openqa.selenium.interactions.Actions;
-import org.openqa.selenium.support.ui.Wait;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import io.netty.handler.timeout.TimeoutException;
@@ -84,8 +78,10 @@ public class SeleniumExample {
        String processName = processname + "Session.xml";
         openMenu();
         search("Process Definition");
-       WebElement textInput = wait.until(ExpectedConditions.visibilityOfElementLocated(By.name("textfield-2492-inputEl")));
-       clickAndSendKeys(textInput, Keys.chord(Keys.ALT, Keys.F2));
+        WebElement textInput = findWithRetry(By.name("textfield-2493-inputEl"), processName);
+        clickAndSendKeys(textInput, Keys.chord(Keys.ALT, Keys.F2));
+        
+        
 
        WebElement code = wait.until(ExpectedConditions.elementToBeClickable(By.name("Code")));
        WebElement description = wait.until(ExpectedConditions.elementToBeClickable(By.name("Description")));
@@ -95,14 +91,14 @@ public class SeleniumExample {
        clickAndSendKeys(description, processname);
        clickAndSendKeys(menuDescription, processname);
        clickAndSendKeys(alternateText, processname);
-       WebElement element = wait.until(ExpectedConditions.elementToBeClickable(By.id("tab-2601")));
+       WebElement element = findWithRetry(By.id("tab-2602-btnInnerEl"), processName);
        element.click();
-       WebElement urlProcess = driver.findElement(By.id("combo-2530-inputEl"));
+       WebElement urlProcess = findWithRetry(By.id("combo-2531-inputEl"), processName);
        clickAndSendKeys(urlProcess, processtype);
 
-       WebElement path = driver.findElement(By.id("textfield-2531-inputEl"));
+       WebElement path = findWithRetry(By.id("textfield-2532-inputEl"), processName);
        clickAndSendKeys(path,processPath);
-       WebElement name = driver.findElement(By.id("textfield-2532-inputEl"));
+       WebElement name = findWithRetry(By.id("textfield-2532-inputEl"), processName);
        clickAndSendKeys(name, processName);
        name.sendKeys(Keys.chord(Keys.ALT,Keys.F3));
 
@@ -130,29 +126,73 @@ public class SeleniumExample {
         openMenu();
         WebElement search = searchWithoutEntering("Menu Definition");
         search.sendKeys(Keys.ENTER);
-        WebElement initialMenu = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("id('gridview-2443-record-809')/tbody[1]/tr[1]/td[2]/div[1]")));
+        WebElement initialMenu = findWithRetry(By.name("textfield-2880-inputEl"), processName);
         initialMenu.click();
-        WebElement MenuElement = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("id('ext-comp-2468-btnInnerEl')")));
-       // WebElement MenuElement = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//*[contains(@id, 'ext-comp-') and contains(@id, '-btnInnerEl')]")));
-       //  WebElement MenuElement = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//div[contains(@class, 'x-grid-cell-inner') and @unselectable='on']")));
+        initialMenu.sendKeys(processName);
+        initialMenu.sendKeys(Keys.ENTER);
+        WebElement bookShop = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("id('gridview-2928-record-907')/tbody[1]/tr[1]/td[2]/div[1]")));
+        bookShop.click();
+        WebElement MenuElement = findWithRetry(By.id("ext-comp-2942-btnInnerEl"), processName);
+        MenuElement.click();
 
-         MenuElement.click();
+        WebElement newButton = findWithRetry(By.id("ext-comp-3054-btnIconEl"), processName);
+        newButton.click();
 
-        WebElement body = wait.until(ExpectedConditions.elementToBeClickable
-        (By.xpath("/html/body/div[1]/div/div[1]/div[2]/div[4]/div[2]/div/div/div/div[2]/div/div/div[2]/div/div/div[2]/div/div/div[2]/div/div/div[2]/div[1]/div[1]/div[3]/div")));
-        clickAndSendKeys(body,Keys.chord(Keys.ALT,Keys.F2));
+        WebElement sequence = wait.until(ExpectedConditions.visibilityOfElementLocated(By.name("Sequence")));
+        System.out.println("Found Sequence.");
+        sequence.click();
+        sequence.sendKeys("40");
 
-        WebElement sequence = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("/html/body/div[1]/div/div[1]/div[2]/div[4]/div[2]/div/div/div/div[2]/div/div/div[2]/div/div/div[2]/div/div/div[3]/div[2]/div/div/div/div[1]/div/div[2]/div/div/div/div/div/div/div/div[3]/div/div/div/div[1]/div/div[1]/input")));
-        clickAndSendKeys(sequence, "4");
-
-        WebElement process = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("/html/body/div[1]/div/div[1]/div[2]/div[4]/div[2]/div/div/div/div[2]/div/div/div[2]/div/div/div[2]/div/div/div[3]/div[2]/div/div/div/div[1]/div/div[2]/div/div/div/div/div/div/div/div[5]/div/div/div/div/div/div/div[1]/div/div[2]/input")));
+        WebElement process = wait.until(ExpectedConditions.visibilityOfElementLocated(By.name("ProcessCode")));
         clickAndSendKeys(process, processName);
-        process.sendKeys(Keys.chord(Keys.ALT,Keys.F3));
+        
+       WebElement save = findWithRetry(By.id("ext-comp-3447-btnIconEl"), processName);
 
 
         exitCurrentWindow();
 
     }
+
+    public static WebElement findWithRetry(By type,String query){
+        WebElement webElement;
+         try{
+            webElement = wait.until(ExpectedConditions.visibilityOfElementLocated(type));
+        }catch(org.openqa.selenium.TimeoutException e){
+            String newName = incrementNumbers(query);
+
+            webElement = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id(newName)));
+        }
+        return webElement;
+    }
+    private static String incrementNumbers(String input) {
+        // Define a regular expression to capture groups of letters and numbers
+        String regex = "([a-zA-Z]+|\\d+)(-([a-zA-Z]+|\\d+))*";
+
+        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(regex);
+        java.util.regex.Matcher matcher = pattern.matcher(input);
+
+        StringBuilder result = new StringBuilder();
+
+        while (matcher.find()) {
+            String group = matcher.group();
+            if (group.matches("\\d+")) {
+                // If the group is a number, increment it
+                int number = Integer.parseInt(group) + 1;
+                result.append(number);
+            } else {
+                // If the group is letters, append it as is
+                result.append(group);
+            }
+
+            // Append the separator if there is one
+            if (matcher.end() < input.length() && input.charAt(matcher.end()) == '-') {
+                result.append('-');
+            }
+        }
+
+        return result.toString();
+    }
+    
 
     // Create random process
 
