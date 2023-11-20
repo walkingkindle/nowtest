@@ -28,7 +28,7 @@ public class SeleniumExample {
 
         wait = new WebDriverWait(driver, Duration.ofSeconds(3));
 
-        testFunction("BookShop", "BookShop");
+      testFunction("Book", "Book",6,"BookShop");
     }
     public static void logMeIn(String username,String password) throws InterruptedException{
         try{
@@ -37,9 +37,9 @@ public class SeleniumExample {
        }
        catch(Exception e){
         //not secure website exception
-          WebElement notSecure = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("/html/body/div/div[2]/button[3]")));
+          WebElement notSecure = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("details-button")));
           notSecure.click();
-          WebElement proceed = driver.findElement(By.xpath("/html/body/div/div[3]/p[2]/a"));
+          WebElement proceed = driver.findElement(By.id("proceed-link"));
           proceed.click();
         }
         WebElement usernameField = wait.until(ExpectedConditions.elementToBeClickable(By.id("j_username-inputEl")));
@@ -78,7 +78,7 @@ public class SeleniumExample {
        String processName = processname + "Session.xml";
         openMenu();
         search("Process Definition");
-        WebElement textInput = findWithRetry(By.name("textfield-2493-inputEl"), processName);
+        WebElement textInput = driver.findElement(By.tagName("body"));
         clickAndSendKeys(textInput, Keys.chord(Keys.ALT, Keys.F2));
         
         
@@ -91,16 +91,17 @@ public class SeleniumExample {
        clickAndSendKeys(description, processname);
        clickAndSendKeys(menuDescription, processname);
        clickAndSendKeys(alternateText, processname);
-       WebElement element = findWithRetry(By.id("tab-2602-btnInnerEl"), processName);
+       WebElement element = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//*[@id='tab-2603']"))); 
        element.click();
-       WebElement urlProcess = findWithRetry(By.id("combo-2531-inputEl"), processName);
+       WebElement urlProcess = wait.until(ExpectedConditions.visibilityOfElementLocated(By.name("InternalURL")));
        clickAndSendKeys(urlProcess, processtype);
 
-       WebElement path = findWithRetry(By.id("textfield-2532-inputEl"), processName);
+       WebElement path = findWithRetry(By.name("UIXMLPath"), processName);
        clickAndSendKeys(path,processPath);
-       WebElement name = findWithRetry(By.id("textfield-2532-inputEl"), processName);
-       clickAndSendKeys(name, processName);
-       name.sendKeys(Keys.chord(Keys.ALT,Keys.F3));
+       WebElement classname = wait.until(ExpectedConditions.visibilityOfElementLocated(By.name("UIXMLName")));
+       classname.click();
+       classname.sendKeys(processName);
+       classname.sendKeys(Keys.chord(Keys.ALT,Keys.F3));
 
 
        try{
@@ -114,39 +115,37 @@ public class SeleniumExample {
        exitCurrentWindow();
     }
     
-    public static void testFunction(String functionName,String processName) throws InterruptedException{
+    public static void testFunction(String functionName,String processName,Integer sequence,String MenuName) throws InterruptedException{
         logMeIn("system", "training");
         Thread.sleep(1000);
         addToProcessDefinition(processName, "HeaderRowProcess.abs", "com/bookshop");
-        addProcessToMenuDefinitionWithinExistingMenu(functionName, processName);
+        addProcessToMenuDefinitionWithinExistingMenu(MenuName,functionName ,sequence);
     }
 
     // Add process to menu definition test
-    public static void addProcessToMenuDefinitionWithinExistingMenu(String menuName, String processName) throws InterruptedException{
+    public static void addProcessToMenuDefinitionWithinExistingMenu(String menuName, String processName,Integer seq) throws InterruptedException{
         openMenu();
         WebElement search = searchWithoutEntering("Menu Definition");
         search.sendKeys(Keys.ENTER);
-        WebElement initialMenu = findWithRetry(By.name("textfield-2880-inputEl"), processName);
+        WebElement initialMenu = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath( String.format("//div[text() = '%s']",menuName))));
         initialMenu.click();
-        initialMenu.sendKeys(processName);
-        initialMenu.sendKeys(Keys.ENTER);
-        WebElement bookShop = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("id('gridview-2928-record-907')/tbody[1]/tr[1]/td[2]/div[1]")));
-        bookShop.click();
-        WebElement MenuElement = findWithRetry(By.id("ext-comp-2942-btnInnerEl"), processName);
+        WebElement MenuElement = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//span[text() = 'Menu Items']")));
         MenuElement.click();
-
-        WebElement newButton = findWithRetry(By.id("ext-comp-3054-btnIconEl"), processName);
-        newButton.click();
+        WebElement ClicableDiv = driver.findElement(By.tagName("body")); //try to find a better way to navigate to the button
+        ClicableDiv.click();
+        ClicableDiv.sendKeys(Keys.chord(Keys.ALT,Keys.F2));
+        //WebElement newButton = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//div[contains(@id,'toolbar')]/descendant::span")));
+        //newButton.click();
 
         WebElement sequence = wait.until(ExpectedConditions.visibilityOfElementLocated(By.name("Sequence")));
-        System.out.println("Found Sequence.");
         sequence.click();
-        sequence.sendKeys("40");
+        sequence.sendKeys(Integer.toString(seq));
 
         WebElement process = wait.until(ExpectedConditions.visibilityOfElementLocated(By.name("ProcessCode")));
         clickAndSendKeys(process, processName);
+        process.sendKeys(Keys.chord(Keys.ALT,Keys.F3));
         
-       WebElement save = findWithRetry(By.id("ext-comp-3447-btnIconEl"), processName);
+       //WebElement save = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//span[text() = 'Save']")));
 
 
         exitCurrentWindow();
