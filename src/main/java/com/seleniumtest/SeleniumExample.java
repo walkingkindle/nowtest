@@ -4,7 +4,6 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.By.ByTagName;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -74,8 +73,8 @@ public class SeleniumExample {
     }
 
     public static void getNew() throws InterruptedException{
-        Thread.sleep(2000);
-        wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//a[contains(@id,'ext-comp')]"))).click();
+        Thread.sleep(1000);
+        wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//a[contains(@id,'ext-comp')]"))).click();
 
     }
 
@@ -151,7 +150,7 @@ public class SeleniumExample {
 
         catchErrorOnCreating(processName);
 
-        //exitCurrentWindow();
+       exitCurrentWindow();
 
     }
 
