@@ -7,6 +7,7 @@ import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.devtools.v113.indexeddb.model.Key;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
@@ -103,7 +104,6 @@ public class SeleniumExample {
        classname.click();
        classname.sendKeys(processname);
        classname.sendKeys(Keys.chord(Keys.ALT,Keys.F3));
-
         return catchErrorOnCreating(processname);
 
 
@@ -141,29 +141,26 @@ public class SeleniumExample {
 
     //------------------------------------------------------------------------------------- HELPER METHODS -------------------------------------------------------------
 
-    public static void clickAndSendKeys(WebElement element, String key ){
+    public static void clickAndSendKeys(WebElement element, String key, Keys... additionalKeys) throws InterruptedException {
         element.click();
         element.sendKeys(key);
-    }
 
-    public static void clickAndSendKeys(WebElement element, String key, Keys additionalKey) throws InterruptedException{
-        element.click();
-        element.sendKeys(key);
-        Thread.sleep(2000);
-        element.sendKeys(additionalKey);
+        for (Keys additionalKey : additionalKeys) {
+            element.sendKeys(additionalKey);
+        }
     }
     public static void openMenu(){
         WebElement body = driver.findElement(By.tagName("body"));
         body.sendKeys(Keys.ALT + "M" + Keys.BACK_SPACE);
     }
 
-    public static void search(String query){
+    public static void search(String query) throws InterruptedException{
        WebElement search = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("search-menu-inputEl"))); 
        clickAndSendKeys(search,query); 
        search.sendKeys(Keys.ENTER);
 
     }
-    public static WebElement searchWithoutEntering(String query){
+    public static WebElement searchWithoutEntering(String query) throws InterruptedException{
         WebElement search = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("search-menu-inputEl"))); 
        clickAndSendKeys(search,query);
        return search;
