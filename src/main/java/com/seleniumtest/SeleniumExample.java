@@ -70,17 +70,31 @@ public class SeleniumExample {
        return search;
     }
     public static void exitCurrentWindow(){
-        WebElement x = wait.until(ExpectedConditions.presenceOfElementLocated(By.className("x-tool")));
-        x.click();
+        wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//div[contains(@class,'x-tool-close')]"))).click(); //needs fixing
+    }
+
+    public static void getNew() throws InterruptedException{
+        Thread.sleep(2000);
+        wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//a[contains(@id,'ext-comp')]"))).click();
+
+    }
+
+    public static void catchErrorOnCreating(String processName){
+        try{
+       WebElement errorMessage = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("/html/body/div[1]/div/div[1]/div[2]/div[4]/div[2]/div/div/div/div[2]/div/div/div[2]/div/div/div[1]/div[2]/div[2]/div/div[1]/table/tbody/tr[1]/td[2]/div"))); 
+       System.out.println("Could not create" + processName + ".Reason: " + errorMessage.getText());
+       }catch(org.openqa.selenium.NoSuchElementException e){
+            System.out.println(processName + " was created sucessfully.");
+       }catch(org.openqa.selenium.TimeoutException i){
+        System.out.println("processName");
+       }
     }
     public static void addToProcessDefinition(String processname,String processtype,String processPath) throws InterruptedException, TimeoutException
     {
        String processName = processname + "Session.xml";
         openMenu();
         search("Process Definition");
-        WebElement textInput = driver.findElement(By.tagName("body"));
-        clickAndSendKeys(textInput, Keys.chord(Keys.ALT, Keys.F2));
-        
+        getNew(); 
         
 
        WebElement code = wait.until(ExpectedConditions.elementToBeClickable(By.name("Code")));
@@ -88,10 +102,10 @@ public class SeleniumExample {
        WebElement menuDescription = wait.until(ExpectedConditions.elementToBeClickable(By.name("MenuDescr")));
        WebElement alternateText = wait.until(ExpectedConditions.elementToBeClickable(By.name("AlternateText")));
        clickAndSendKeys(code, processname);
-       clickAndSendKeys(description, processname);
-       clickAndSendKeys(menuDescription, processname);
-       clickAndSendKeys(alternateText, processname);
-       WebElement element = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//*[@id='tab-2603']"))); 
+       clickAndSendKeys(description, processName);
+       clickAndSendKeys(menuDescription, processName);
+       clickAndSendKeys(alternateText, processName);
+       WebElement element = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//a[contains(@data-qtip,'URL')]"))); //needs fixing 
        element.click();
        WebElement urlProcess = wait.until(ExpectedConditions.visibilityOfElementLocated(By.name("InternalURL")));
        clickAndSendKeys(urlProcess, processtype);
@@ -103,17 +117,13 @@ public class SeleniumExample {
        classname.sendKeys(processName);
        classname.sendKeys(Keys.chord(Keys.ALT,Keys.F3));
 
+        catchErrorOnCreating(processName);
 
-       try{
-       WebElement errorMessage = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("/html/body/div[1]/div/div[1]/div[2]/div[4]/div[2]/div/div/div/div[2]/div/div/div[2]/div/div/div[1]/div[2]/div[2]/div/div[1]/table/tbody/tr[1]/td[2]/div")));
-       System.out.println("Could not create" + processName + ".Reason: " + errorMessage.getText());
-       }catch(org.openqa.selenium.NoSuchElementException e){
-            System.out.println(processName + " was created sucessfully.");
-       }catch(org.openqa.selenium.TimeoutException i){
-        System.out.println("processName");
-       }
+
        exitCurrentWindow();
     }
+
+
     
     public static void testFunction(String functionName,String processName,Integer sequence,String MenuName) throws InterruptedException{
         logMeIn("system", "training");
@@ -131,24 +141,17 @@ public class SeleniumExample {
         initialMenu.click();
         WebElement MenuElement = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//span[text() = 'Menu Items']")));
         MenuElement.click();
-        WebElement ClicableDiv = driver.findElement(By.tagName("body")); //try to find a better way to navigate to the button
-        ClicableDiv.click();
-        ClicableDiv.sendKeys(Keys.chord(Keys.ALT,Keys.F2));
-        //WebElement newButton = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//div[contains(@id,'toolbar')]/descendant::span")));
-        //newButton.click();
-
+        
+        getNew();
         WebElement sequence = wait.until(ExpectedConditions.visibilityOfElementLocated(By.name("Sequence")));
-        sequence.click();
-        sequence.sendKeys(Integer.toString(seq));
-
+        clickAndSendKeys(sequence, Integer.toString(seq));
         WebElement process = wait.until(ExpectedConditions.visibilityOfElementLocated(By.name("ProcessCode")));
         clickAndSendKeys(process, processName);
         process.sendKeys(Keys.chord(Keys.ALT,Keys.F3));
-        
-       //WebElement save = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//span[text() = 'Save']")));
 
+        catchErrorOnCreating(processName);
 
-        exitCurrentWindow();
+        //exitCurrentWindow();
 
     }
 
@@ -191,10 +194,4 @@ public class SeleniumExample {
 
         return result.toString();
     }
-    
-
-    // Create random process
-
-
-    // Create ui
 }
