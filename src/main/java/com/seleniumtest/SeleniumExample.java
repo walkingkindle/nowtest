@@ -1,5 +1,7 @@
 package com.seleniumtest;
 import java.time.Duration;
+import java.util.Scanner;
+
 import org.openqa.selenium.By;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
@@ -20,6 +22,7 @@ public class SeleniumExample {
 
     public static void main(String[] args) throws InterruptedException {
         System.setProperty("webdriver.chrome.driver", "C:/Windows/chromedriver.exe");
+        Scanner scanner = new Scanner(System.in);
 
         driver = new ChromeDriver();
 
@@ -27,8 +30,87 @@ public class SeleniumExample {
 
         wait = new WebDriverWait(driver, Duration.ofSeconds(3));
 
-      testFunction("Book", "Book",6,"BookShop");
+        testFunction("system","training","BookTransferParameter.xml", "HeaderRowProcess.abs","com/bookshop",6,"BookShop");
+
+        System.out.println("Test Completed, press any key to close the browser");
+        String anyKey = scanner.nextLine();
+
+        // Close the WebDriver
+        driver.quit();
     }
+
+
+
+
+    //-----------------------------------------------------------------------  TESTER METHODS ----------------------------------------------------------------------------------------
+
+    public static void testFunction(String username, String password,String processName,String processType, String processPath,Integer sequence,String MenuName) throws InterruptedException{
+        logMeIn(username, password);
+        Thread.sleep(1000);
+        addToProcessDefinition(processName, processType, processPath);  
+        addProcessToMenuDefinitionWithinExistingMenu(MenuName,processName ,sequence);
+    }
+
+        public static boolean addProcessToMenuDefinitionWithinExistingMenu(String menuName, String processName,Integer seq) throws InterruptedException{
+        openMenu();
+        String processNameWithoutXml = stripXmlExtension(processName);
+        WebElement search = searchWithoutEntering("Menu Definition");
+        search.sendKeys(Keys.ENTER);
+        WebElement initialMenu = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath( String.format("//div[text() = '%s']",menuName))));
+        initialMenu.click();
+        WebElement MenuElement = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//span[text() = 'Menu Items']")));
+        MenuElement.click();
+        
+        getNew();
+        WebElement sequence = wait.until(ExpectedConditions.visibilityOfElementLocated(By.name("Sequence")));
+        clickAndSendKeys(sequence, Integer.toString(seq));
+        WebElement process = wait.until(ExpectedConditions.visibilityOfElementLocated(By.name("ProcessCode")));
+        clickAndSendKeys(process, processNameWithoutXml);
+        process.sendKeys(Keys.chord(Keys.ALT,Keys.F3));
+
+        return catchErrorOnCreating(processName);
+    }
+
+
+
+
+
+
+
+        public static boolean addToProcessDefinition(String processname,String processtype,String processPath) throws InterruptedException, TimeoutException
+    {
+        openMenu();
+        search("Process Definition");
+        getNew(); 
+        String codeName = stripXmlExtension(processname);
+
+       WebElement code = wait.until(ExpectedConditions.elementToBeClickable(By.name("Code")));
+       WebElement description = wait.until(ExpectedConditions.elementToBeClickable(By.name("Description")));
+       WebElement menuDescription = wait.until(ExpectedConditions.elementToBeClickable(By.name("MenuDescr")));
+       WebElement alternateText = wait.until(ExpectedConditions.elementToBeClickable(By.name("AlternateText")));
+       clickAndSendKeys(code, codeName);
+       clickAndSendKeys(description, processname);
+       clickAndSendKeys(menuDescription, processname);
+       clickAndSendKeys(alternateText, processname);
+       WebElement element = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//a[contains(@data-qtip,'URL')]")));  
+       element.click();
+       WebElement urlProcess = wait.until(ExpectedConditions.visibilityOfElementLocated(By.name("InternalURL")));
+       clickAndSendKeys(urlProcess, processtype,Keys.ENTER);
+
+       WebElement path = wait.until(ExpectedConditions.visibilityOfElementLocated(By.name("UIXMLPath")));
+       clickAndSendKeys(path,processPath);
+       WebElement classname = wait.until(ExpectedConditions.visibilityOfElementLocated(By.name("UIXMLName")));
+       classname.click();
+       classname.sendKeys(processname);
+       classname.sendKeys(Keys.chord(Keys.ALT,Keys.F3));
+
+        return catchErrorOnCreating(processname);
+
+
+    }
+
+
+
     public static void logMeIn(String username,String password) throws InterruptedException{
         try{
         WebElement element1 = driver.findElement(By.xpath("/html/body/div[1]/div/div[3]/div/form/div[2]/div[1]/div/div/div[2]/div[1]/div/div/input']"));
@@ -48,9 +130,27 @@ public class SeleniumExample {
         actions = new Actions(driver);
         actions.sendKeys(Keys.RETURN).perform();
     }
+
+
+
+
+
+
+
+
+
+    //------------------------------------------------------------------------------------- HELPER METHODS -------------------------------------------------------------
+
     public static void clickAndSendKeys(WebElement element, String key ){
         element.click();
         element.sendKeys(key);
+    }
+
+    public static void clickAndSendKeys(WebElement element, String key, Keys additionalKey) throws InterruptedException{
+        element.click();
+        element.sendKeys(key);
+        Thread.sleep(2000);
+        element.sendKeys(additionalKey);
     }
     public static void openMenu(){
         WebElement body = driver.findElement(By.tagName("body"));
@@ -77,120 +177,39 @@ public class SeleniumExample {
         wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//a[contains(@id,'ext-comp')]"))).click();
 
     }
+    public static String stripXmlExtension(String processname) {
+        // Check if the file name ends with ".xml" before removing it
+        if (processname.endsWith(".xml")) {
+            // Remove the ".xml" part
+            return processname.substring(0, processname.length() - 4);
+        } else {
+            // If the file name doesn't end with ".xml," return the original name
+            return processname;
+        }
+    }
 
-    public static void catchErrorOnCreating(String processName){
+
+    public static Boolean catchErrorOnCreating(String processName){
         try{
        WebElement errorMessage = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("/html/body/div[1]/div/div[1]/div[2]/div[4]/div[2]/div/div/div/div[2]/div/div/div[2]/div/div/div[1]/div[2]/div[2]/div/div[1]/table/tbody/tr[1]/td[2]/div"))); 
        System.out.println("Could not create" + processName + ".Reason: " + errorMessage.getText());
+       return false;
        }catch(org.openqa.selenium.NoSuchElementException e){
             System.out.println(processName + " was created sucessfully.");
+            return true;
        }catch(org.openqa.selenium.TimeoutException i){
         System.out.println("processName");
+        return true;
+       }finally{
+        exitCurrentWindow();
        }
     }
-    public static void addToProcessDefinition(String processname,String processtype,String processPath) throws InterruptedException, TimeoutException
-    {
-       String processName = processname + "Session.xml";
-        openMenu();
-        search("Process Definition");
-        getNew(); 
-        
 
-       WebElement code = wait.until(ExpectedConditions.elementToBeClickable(By.name("Code")));
-       WebElement description = wait.until(ExpectedConditions.elementToBeClickable(By.name("Description")));
-       WebElement menuDescription = wait.until(ExpectedConditions.elementToBeClickable(By.name("MenuDescr")));
-       WebElement alternateText = wait.until(ExpectedConditions.elementToBeClickable(By.name("AlternateText")));
-       clickAndSendKeys(code, processname);
-       clickAndSendKeys(description, processName);
-       clickAndSendKeys(menuDescription, processName);
-       clickAndSendKeys(alternateText, processName);
-       WebElement element = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//a[contains(@data-qtip,'URL')]"))); //needs fixing 
-       element.click();
-       WebElement urlProcess = wait.until(ExpectedConditions.visibilityOfElementLocated(By.name("InternalURL")));
-       clickAndSendKeys(urlProcess, processtype);
-
-       WebElement path = findWithRetry(By.name("UIXMLPath"), processName);
-       clickAndSendKeys(path,processPath);
-       WebElement classname = wait.until(ExpectedConditions.visibilityOfElementLocated(By.name("UIXMLName")));
-       classname.click();
-       classname.sendKeys(processName);
-       classname.sendKeys(Keys.chord(Keys.ALT,Keys.F3));
-
-        catchErrorOnCreating(processName);
-
-
-       exitCurrentWindow();
-    }
-
+}
 
     
-    public static void testFunction(String functionName,String processName,Integer sequence,String MenuName) throws InterruptedException{
-        logMeIn("system", "training");
-        Thread.sleep(1000);
-        addToProcessDefinition(processName, "HeaderRowProcess.abs", "com/bookshop");
-        addProcessToMenuDefinitionWithinExistingMenu(MenuName,functionName ,sequence);
-    }
+
 
     // Add process to menu definition test
-    public static void addProcessToMenuDefinitionWithinExistingMenu(String menuName, String processName,Integer seq) throws InterruptedException{
-        openMenu();
-        WebElement search = searchWithoutEntering("Menu Definition");
-        search.sendKeys(Keys.ENTER);
-        WebElement initialMenu = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath( String.format("//div[text() = '%s']",menuName))));
-        initialMenu.click();
-        WebElement MenuElement = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//span[text() = 'Menu Items']")));
-        MenuElement.click();
-        
-        getNew();
-        WebElement sequence = wait.until(ExpectedConditions.visibilityOfElementLocated(By.name("Sequence")));
-        clickAndSendKeys(sequence, Integer.toString(seq));
-        WebElement process = wait.until(ExpectedConditions.visibilityOfElementLocated(By.name("ProcessCode")));
-        clickAndSendKeys(process, processName);
-        process.sendKeys(Keys.chord(Keys.ALT,Keys.F3));
 
-        catchErrorOnCreating(processName);
 
-       exitCurrentWindow();
-
-    }
-
-    public static WebElement findWithRetry(By type,String query){
-        WebElement webElement;
-         try{
-            webElement = wait.until(ExpectedConditions.visibilityOfElementLocated(type));
-        }catch(org.openqa.selenium.TimeoutException e){
-            String newName = incrementNumbers(query);
-
-            webElement = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id(newName)));
-        }
-        return webElement;
-    }
-    private static String incrementNumbers(String input) {
-        // Define a regular expression to capture groups of letters and numbers
-        String regex = "([a-zA-Z]+|\\d+)(-([a-zA-Z]+|\\d+))*";
-
-        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(regex);
-        java.util.regex.Matcher matcher = pattern.matcher(input);
-
-        StringBuilder result = new StringBuilder();
-
-        while (matcher.find()) {
-            String group = matcher.group();
-            if (group.matches("\\d+")) {
-                // If the group is a number, increment it
-                int number = Integer.parseInt(group) + 1;
-                result.append(number);
-            } else {
-                // If the group is letters, append it as is
-                result.append(group);
-            }
-
-            // Append the separator if there is one
-            if (matcher.end() < input.length() && input.charAt(matcher.end()) == '-') {
-                result.append('-');
-            }
-        }
-
-        return result.toString();
-    }
-}
