@@ -1,5 +1,6 @@
 package com.seleniumtest;
 import java.time.Duration;
+import java.util.List;
 import java.util.Scanner;
 
 import org.openqa.selenium.By;
@@ -31,8 +32,11 @@ public class SeleniumExample {
 
         wait = new WebDriverWait(driver, Duration.ofSeconds(3));
 
-        testFunction("system","training","BookTransferParameter.xml", "HeaderRowProcess.abs","com/bookshop",6,"BookShop");
+        //testFunction("system","training","BookBalanceAnalysisSession.xml", "HeaderRowProcess.abs","com/bookshop",30,"BookShop");
 
+        logMeIn("system", "training");
+        Thread.sleep(1000);
+        salesOrderTest();
         System.out.println("Test Completed, press any key to close the browser");
         String anyKey = scanner.nextLine();
 
@@ -78,11 +82,11 @@ public class SeleniumExample {
 
 
 
-        public static boolean addToProcessDefinition(String processname,String processtype,String processPath) throws InterruptedException, TimeoutException
+    public static boolean addToProcessDefinition(String processname,String processtype,String processPath) throws InterruptedException, TimeoutException
     {
         openMenu();
         search("Process Definition");
-        getNew(); 
+        getNew();
         String codeName = stripXmlExtension(processname);
 
        WebElement code = wait.until(ExpectedConditions.elementToBeClickable(By.name("Code")));
@@ -131,10 +135,57 @@ public class SeleniumExample {
         actions.sendKeys(Keys.RETURN).perform();
     }
 
+    public static void salesOrderTest() throws InterruptedException{
+        openMenu();
+        search("Sales order");
+        getNew();
+        WebElement templateCode = findElementByName("TemplateCode");
+        clickAndSendKeys(templateCode, Keys.chord(Keys.ALT,"L"));
+        lookUpRowByText("Sales order");
+        WebElement customer = findElementByName("OrderPartnerCustomerSupplierCode");
+        clickAndSendKeys(customer, Keys.chord(Keys.ALT,"L"));
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath( String.format("//div[text()='%s']","Customer")))).click();
+        //lookUpRowByText("Fashion House");
+        WebElement lifeCycle = findElementByName("LifeCycleCode");
+        clickAndSendKeys(lifeCycle, Keys.chord(Keys.ALT,"L"));
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath( String.format("//div[text()='%s']","002")))).click();
+        clickAndSendKeys(lifeCycle, Keys.chord(Keys.ALT, Keys.F12));
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//span[text()='Agents']"))).click();
+        WebElement agentInput = findElementByName("Agent1Code");
+        clickAndSendKeys(agentInput, Keys.chord(Keys.ALT, "L"));
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath( String.format("//*[@id=\"ext-element-122\"]/div")))).click();
+        List<WebElement> testingElements = driver.findElements(By.xpath("//div[contains(@class, 'x-grid-cell-inner') and text()='001']"));
+        clickOnMany(testingElements);
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//span[text()='Line']"))).click();
+        WebElement lineTempCode = findElementByName("LineTemplateCode");
+        clickAndSendKeys(lineTempCode, Keys.chord(Keys.ALT, "L"));
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath( "//div[text() = \"DNM\"]"))).click();
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath( "//span[text()=\"Refresh\"]"))).click();
+        WebElement subcode = findElementByName("Subcode06");
+        clickAndSendKeys(subcode, Keys.chord(Keys.ALT, "L"));
+        try{
+            List<WebElement> colors = driver.findElements(By.xpath( "//span[text() = \"Extended lookup\"]"));
+            clickOnMany(colors);
+        } catch(org.openqa.selenium.TimeoutException e) {
+            subcode.sendKeys(Keys.ESCAPE);
+            wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath( "//span[text() = \"Lookup\"]"))).click();
+        }
+        //clickAndSendKeys(lineTempCode, Keys.chord(Keys.ALT, Keys.F12));
+        
+    }    
 
 
 
+    //-----------------------------------TODOS--------------------------------
+    // 1. Create function that enters and goes inside sales order.
+    // 2. The functions clicks on the necessary fields and presses next
+    // 3.  The functions fills all the mandatory fields
+    // 4. Presses save or "next" again
+    // 5. If there is an error prompt ask the user what to do about the error.
+    //6. Create a different function where the user has parameters regarding sales order attributes, and another one where the inputs are just random, for the sake of the testing.
 
+
+    
 
 
 
@@ -148,6 +199,25 @@ public class SeleniumExample {
         for (Keys additionalKey : additionalKeys) {
             element.sendKeys(additionalKey);
         }
+    }
+    //use if anything else isn't possible
+    public static void clickOnMany(List<WebElement> elements){
+        for(WebElement element : elements){
+            if(wait.until(ExpectedConditions.elementToBeClickable(element)) != null){
+            element.click();
+            break;
+        }
+    }
+    }
+
+    public static void lookUpRowByText(String query){
+       wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath( String.format("//div[text()='%s' and @class]",query)))).click();
+
+    }
+
+    public static WebElement findElementByName(String name){
+        WebElement element = wait.until(ExpectedConditions.visibilityOfElementLocated(By.name(name)));
+        return element;
     }
     public static void openMenu(){
         WebElement body = driver.findElement(By.tagName("body"));
