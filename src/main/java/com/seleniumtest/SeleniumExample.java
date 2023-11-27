@@ -2,9 +2,12 @@ package com.seleniumtest;
 import java.time.Duration;
 import java.util.List;
 import java.util.Scanner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.Keys;
+import org.openqa.selenium.NotFoundException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -13,6 +16,7 @@ import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import io.netty.handler.timeout.TimeoutException;
+import net.bytebuddy.asm.Advice.Enter;
 
 import org.openqa.selenium.support.ui.ExpectedConditions;
 
@@ -136,6 +140,7 @@ public class SeleniumExample {
     }
 
     public static void salesOrderTest() throws InterruptedException{
+        try{
         openMenu();
         search("Sales order");
         getNew();
@@ -153,25 +158,24 @@ public class SeleniumExample {
         wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//span[text()='Agents']"))).click();
         WebElement agentInput = findElementByName("Agent1Code");
         clickAndSendKeys(agentInput, Keys.chord(Keys.ALT, "L"));
-        wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath( String.format("//*[@id=\"ext-element-122\"]/div")))).click();
-        List<WebElement> testingElements = driver.findElements(By.xpath("//div[contains(@class, 'x-grid-cell-inner') and text()='001']"));
-        clickOnMany(testingElements);
-        wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//span[text()='Line']"))).click();
+        WebElement agentSubcode = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//div[text()='001'][ancestor::*[contains(@class, 'ABS_win-lookup')]]")));
+        //clickOnMany(salesOrderSubCodes);
+        agentSubcode.click();
+        wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//span[text()='Line']"))).click();
         WebElement lineTempCode = findElementByName("LineTemplateCode");
         clickAndSendKeys(lineTempCode, Keys.chord(Keys.ALT, "L"));
         wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath( "//div[text() = \"DNM\"]"))).click();
         wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath( "//span[text()=\"Refresh\"]"))).click();
-        WebElement subcode = findElementByName("Subcode06");
-        clickAndSendKeys(subcode, Keys.chord(Keys.ALT, "L"));
-        try{
-            List<WebElement> colors = driver.findElements(By.xpath( "//span[text() = \"Extended lookup\"]"));
-            clickOnMany(colors);
-        } catch(org.openqa.selenium.TimeoutException e) {
-            subcode.sendKeys(Keys.ESCAPE);
-            wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath( "//span[text() = \"Lookup\"]"))).click();
+        WebElement subcode = wait.until(ExpectedConditions.visibilityOfElementLocated(By.name("Subcode06")));
+        clickAndSendKeys(subcode, Keys.chord(Keys.ALT,"L"));
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//span[text()= 'Lookup (Alt+L)']"))).click();
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//div[text()='001' and contains(@class, 'x-grid-cell-inner')]"))).click();
+        }catch(org.openqa.selenium.ElementClickInterceptedException e){
+            if(isElementPresent(wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//div[contains(@id,'messagebox')]"))))){
+                wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//span[text()='No']"))).click();
+
+            }
         }
-        //clickAndSendKeys(lineTempCode, Keys.chord(Keys.ALT, Keys.F12));
-        
     }    
 
 
@@ -185,12 +189,47 @@ public class SeleniumExample {
     //6. Create a different function where the user has parameters regarding sales order attributes, and another one where the inputs are just random, for the sake of the testing.
 
 
-    
+   
+
 
 
 
 
     //------------------------------------------------------------------------------------- HELPER METHODS -------------------------------------------------------------
+    
+    public static void lookUpEach()
+
+
+    public static void manyLookUpFunction(String inputString) throws InterruptedException{
+        for (int i = 0; i < 7; i++){
+        Pattern pattern = Pattern.compile("//d+");
+        Matcher matcher = pattern.matcher(inputString);
+        int number = Integer.parseInt(matcher.group());
+
+        int increasedNumber = number - 1;
+
+        String resultString = inputString.replace(inputString.valueOf(number), String.valueOf(increasedNumber));
+        try{
+
+        System.out.println("Clicked on " + resultString);
+        }catch(org.openqa.selenium.TimeoutException e){
+            break;
+        }
+        }
+
+    }
+
+
+    public static boolean isElementPresent(WebElement element) {
+        try {
+            // Attempt to find the element
+            element.isDisplayed();
+            return true; // Element found, return true
+        } catch (org.openqa.selenium.NoSuchElementException e) {
+            return false; // Element not found, return false
+        }
+    }
+
 
     public static void clickAndSendKeys(WebElement element, String key, Keys... additionalKeys) throws InterruptedException {
         element.click();
@@ -201,15 +240,33 @@ public class SeleniumExample {
         }
     }
     //use if anything else isn't possible
-    public static void clickOnMany(List<WebElement> elements){
-        for(WebElement element : elements){
-            if(wait.until(ExpectedConditions.elementToBeClickable(element)) != null){
-            element.click();
-            break;
+    public static void clickOnMany(List<WebElement> elements) {
+        for (WebElement element : elements) {
+            try {
+                // Check if the element is clickable
+                WebElement clickableElement = wait.until(ExpectedConditions.elementToBeClickable(element));
+                clickableElement.click();
+                
+                // If the element is clickable, click on it and break out of the loop
+                //if (clickableElement != null) {
+                    //clickableElement.click();
+                    //break;
+                //}
+            try{
+            wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//div[text()='Sales order - Agents']"))).click();
+            }catch(org.openqa.selenium.TimeoutException i){
+                return;
+            }
+            } catch (org.openqa.selenium.ElementClickInterceptedException e) {
+                // If ElementClickInterceptedException occurs, catch the exception and continue to the next iteration
+                continue;
+            }
         }
     }
+    public static WebElement clickOnLast(List<WebElement> elements) {
+        WebElement lastElement = elements.get(elements.size() - 1);
+        return lastElement;
     }
-
     public static void lookUpRowByText(String query){
        wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath( String.format("//div[text()='%s' and @class]",query)))).click();
 
