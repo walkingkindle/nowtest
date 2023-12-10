@@ -36,14 +36,13 @@ public class SeleniumExample {
 
         wait = new WebDriverWait(driver, Duration.ofSeconds(3));
 
-        //testFunction("system","training","BookBalanceAnalysisSession.xml", "HeaderRowProcess.abs","com/bookshop",30,"BookShop");
-
         logMeIn("system", "training");
         Thread.sleep(1000);
         salesOrderTest();
+        //testFunction("system", "training", "BookTransactionSession.xml", "HeaderRowProcess.abs", "com/bookshop", 65, "BookShop"); 
         System.out.println("Test Completed, press any key to close the browser");
         String anyKey = scanner.nextLine();
-
+       
         // Close the WebDriver
         driver.quit();
     }
@@ -170,6 +169,7 @@ public class SeleniumExample {
         clickAndSendKeys(subcode, Keys.chord(Keys.ALT,"L"));
         wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//span[text()= 'Lookup (Alt+L)']"))).click();
         wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//div[text()='001' and contains(@class, 'x-grid-cell-inner')]"))).click();
+        //find all inputs in the following window, and fill them randomly ===============TODO=========================
         }catch(org.openqa.selenium.ElementClickInterceptedException e){
             if(isElementPresent(wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//div[contains(@id,'messagebox')]"))))){
                 wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//span[text()='No']"))).click();
@@ -197,7 +197,6 @@ public class SeleniumExample {
 
     //------------------------------------------------------------------------------------- HELPER METHODS -------------------------------------------------------------
     
-    public static void lookUpEach()
 
 
     public static void manyLookUpFunction(String inputString) throws InterruptedException{
