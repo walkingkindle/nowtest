@@ -25,21 +25,21 @@ public class SeleniumExample {
     public static WebDriver driver;
     public static Actions actions; 
     public static WebDriverWait wait;
+    public static Scanner scanner = new Scanner(System.in);
 
     public static void main(String[] args) throws InterruptedException {
         System.setProperty("webdriver.chrome.driver", "C:/Windows/chromedriver.exe");
-        Scanner scanner = new Scanner(System.in);
+        
 
         driver = new ChromeDriver();
-
         driver.get("https://dell:8443/now/MainDesktop.jsp");
 
         wait = new WebDriverWait(driver, Duration.ofSeconds(3));
 
+        Thread.sleep(1000);
         logMeIn("system", "training");
         Thread.sleep(1000);
         salesOrderTest();
-        //testFunction("system", "training", "BookTransactionSession.xml", "HeaderRowProcess.abs", "com/bookshop", 65, "BookShop"); 
         System.out.println("Test Completed, press any key to close the browser");
         String anyKey = scanner.nextLine();
        
@@ -120,8 +120,8 @@ public class SeleniumExample {
 
     public static void logMeIn(String username,String password) throws InterruptedException{
         try{
-        WebElement element1 = driver.findElement(By.xpath("/html/body/div[1]/div/div[3]/div/form/div[2]/div[1]/div/div/div[2]/div[1]/div/div/input']"));
-        element1.click();
+        WebElement usernameField = wait.until(ExpectedConditions.elementToBeClickable(By.id("j_username-inputEl")));
+        usernameField.click();
        }
        catch(Exception e){
         //not secure website exception
@@ -165,15 +165,41 @@ public class SeleniumExample {
         clickAndSendKeys(lineTempCode, Keys.chord(Keys.ALT, "L"));
         wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath( "//div[text() = \"DNM\"]"))).click();
         wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath( "//span[text()=\"Refresh\"]"))).click();
+        try{
         WebElement subcode = wait.until(ExpectedConditions.visibilityOfElementLocated(By.name("Subcode06")));
         clickAndSendKeys(subcode, Keys.chord(Keys.ALT,"L"));
         wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//span[text()= 'Lookup (Alt+L)']"))).click();
+        }
+        catch(org.openqa.selenium.TimeoutException e){
+            WebElement itemTypeCode = wait.until(ExpectedConditions.elementToBeClickable(By.name("ItemTypeAFICode")));
+            clickAndSendKeys(itemTypeCode, Keys.chord(Keys.ALT,"L"));
+        }
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//div[text()='05' and contains(@class, 'x-grid-cell-inner')]"))).click();
+        try{
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.name("Subcode06"))).click();
+        }catch(org.openqa.selenium.TimeoutException o){
+            wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//div[text()='05' and contains(@class, 'x-grid-cell-inner')]"))).click();
+            wait.until(ExpectedConditions.visibilityOfElementLocated(By.name("Subcode05"))).click();
+        }
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//div[text()='001'][ancestor::*[contains(@class, 'ABS_win-lookup')]]"))).click();
+        WebElement extendedLookup = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//span[text()='Extended lookup']")));
+        extendedLookup.click();
         wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//div[text()='001' and contains(@class, 'x-grid-cell-inner')]"))).click();
-        //find all inputs in the following window, and fill them randomly ===============TODO=========================
+
+
         }catch(org.openqa.selenium.ElementClickInterceptedException e){
             if(isElementPresent(wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//div[contains(@id,'messagebox')]"))))){
+                try{
                 wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//span[text()='No']"))).click();
-
+                }
+                catch (org.openqa.selenium.TimeoutException i)
+                {
+                    WebElement errorMessage = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//div[contains(@id, 'messagebox')]")));
+                    System.out.println("Could not create process because of error %s',errorMessage.getText()");
+                }
+            }
+            else{
+                System.out.println("Could not create the function.Check screen for errors");
             }
         }
     }    
